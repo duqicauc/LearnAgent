@@ -49,11 +49,46 @@ python -m pytest         # 根目录 Demo 无单测，测试在各子项目内
 
 多智能体驱动的 AI 前沿信息检索与可视化报告工具。输入一句指令，自动完成 **规划 → 多源抓取 → 数据管道 → AI 分析 → 报告生成**，产出一份可交互、带置信度评估的单文件 HTML 报告。支持 Docker 一键部署。
 
+### Docker 部署（推荐）
+
+前置条件：已安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/)（含 compose 插件，`docker compose version` 可验证）。
+
+```bash
+# 1. 进入子项目目录
+cd ai-news-assistant
+
+# 2. 配置 API Key（生成 .env 模板后编辑，填入自己的 Key）
+cp .env.example .env
+vim .env                        # 设置 DEEPSEEK_API_KEY=sk-你的Key
+
+# 3. 构建并后台启动（首次会拉取 python 镜像并安装依赖）
+docker compose up -d --build
+
+# 4. 打开产品首页
+open http://localhost:8080
+```
+
+日常运维命令：
+
+```bash
+docker compose ps               # 查看容器状态（healthy 表示就绪）
+docker compose logs -f          # 实时查看日志
+docker compose down             # 停止服务（数据保留在 ./data）
+docker compose up -d            # 再次启动（无需重新构建）
+docker compose down -v          # 停止并删除全部数据（慎用）
+```
+
+> 未配置 Key 时服务仍可启动，首页会显示配置引导，但无法运行任务。
+
+### 本地开发（非 Docker）
+
 ```bash
 cd ai-news-assistant
-cp .env.example .env    # 填入 DEEPSEEK_API_KEY
-docker compose up -d --build
-open http://localhost:8080
+pip install -r requirements.txt
+cp .env.example .env            # 填入 Key
+python -m web.app               # 启动 Web 服务（默认 8080）
+# 或 CLI 方式：
+python demo04.py --query "抓取本周 AI 动态" --quick
 ```
 
 能力特性：
