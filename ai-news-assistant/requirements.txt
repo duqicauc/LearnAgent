@@ -1,0 +1,16 @@
+# LLM 接入
+openai
+python-dotenv
+
+# 网页抓取（M2）
+requests
+beautifulsoup4
+
+# HTML 报告渲染（M5）
+jinja2
+
+# RAG 向量检索（M4）
+numpy
+
+# 产品化 Web 服务
+flask

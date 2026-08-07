@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 信息搜索助手</title>
+<style>
+:root {
+  --bg: #f5f6fa; --card: #ffffff; --text: #1f2430; --muted: #6b7280;
+  --accent: #4f46e5; --border: #e5e7eb; --tag: #eef2ff; --tag-text: #4338ca;
+  --good: #059669; --low: #dc2626; --warn-bg: #fef3c7; --warn-text: #92400e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 24px; max-width: 860px; margin: 0 auto;
+}
+header { margin-bottom: 20px; }
+h1 { font-size: 1.6rem; }
+.subtitle { color: var(--muted); }
+.warn {
+  background: var(--warn-bg); color: var(--warn-text); border-radius: 10px;
+  padding: 10px 14px; font-size: .88rem; margin: 14px 0;
+}
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px; margin: 16px 0;
+}
+.card h2 { font-size: 1.05rem; margin-bottom: 10px; }
+textarea {
+  width: 100%; min-height: 72px; padding: 12px; font-size: .95rem;
+  border: 1px solid var(--border); border-radius: 10px; resize: vertical;
+  font-family: inherit; color: var(--text); background: var(--bg);
+}
+.row { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+button {
+  padding: 10px 22px; border: 1px solid var(--accent); border-radius: 10px;
+  background: var(--accent); color: #fff; font-size: .95rem; cursor: pointer;
+  transition: opacity .2s;
+}
+button:hover { opacity: .9; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+#status { font-size: .85rem; color: var(--muted); }
+#log {
+  margin-top: 10px; background: #111827; color: #d1d5db; font-family: ui-monospace, Menlo, monospace;
+  font-size: .78rem; padding: 12px; border-radius: 8px; white-space: pre-wrap;
+  max-height: 240px; overflow-y: auto; display: none;
+}
+.report-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+}
+.report-item:hover { background: var(--tag); }
+.report-item a { color: var(--text); text-decoration: none; font-size: .9rem; flex: 1; min-width: 0; }
+.report-item a:hover { color: var(--accent); }
+.report-meta { font-size: .75rem; color: var(--muted); flex-shrink: 0; }
+.score {
+  font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; color: #fff;
+}
+.score-优 { background: var(--good); }
+.score-良 { background: #d97706; }
+.score-中 { background: var(--low); }
+.arch-link { display: inline-block; margin-top: 8px; color: var(--accent); font-size: .88rem; text-decoration: none; }
+.arch-link:hover { text-decoration: underline; }
+.empty { color: var(--muted); padding: 20px; text-align: center; }
+footer { margin-top: 40px; text-align: center; color: var(--muted); font-size: .8rem; }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 768px) { body { padding: 14px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI 信息搜索助手</h1>
+  <p class="subtitle">输入一句想要了解的 AI 动态，自动抓取多源信息、综合分析并生成可视化报告。</p>
+  {% if not has_key %}
+  <div class="warn">⚠️ 尚未配置 LLM API Key（环境变量 DEEPSEEK_API_KEY）。当前无法运行任务，请先在启动命令中注入 Key，参见 README 配置说明。</div>
+  {% endif %}
+</header>
+
+<section class="card">
+  <h2>发起新任务</h2>
+  <textarea id="query" placeholder="例如：抓取本周最新的 AI 前沿动态，重点关注模型发布与产业资讯"></textarea>
+  <div class="row">
+    <button id="run-btn">开始搜索</button>
+    <span id="status"></span>
+  </div>
+  <pre id="log"></pre>
+</section>
+
+<section class="card">
+  <h2>最近报告</h2>
+  <div id="recent"><p class="empty">加载中...</p></div>
+  <a class="arch-link" href="/reports/archive.html" target="_blank">查看全部报告归档 →</a>
+</section>
+
+<footer>AI 信息搜索助手 · 数据保存在 data/ 目录（报告 / 记忆 / 缓存）</footer>
+
+<script>
+const queryEl = document.getElementById('query');
+const runBtn = document.getElementById('run-btn');
+const statusEl = document.getElementById('status');
+const logEl = document.getElementById('log');
+
+function setStatus(text, busy) {
+  statusEl.innerHTML = text;
+  runBtn.disabled = busy || !queryEl.value.trim();
+}
+
+async function submitTask() {
+  const q = queryEl.value.trim();
+  if (!q) { setStatus('请输入任务指令', false); return; }
+  runBtn.disabled = true;
+  statusEl.innerHTML = '<span class="spin"></span>提交中...';
+  let res;
+  try {
+    res = await fetch('/api/task', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q }),
+    });
+  } catch (e) {
+    setStatus('网络错误：' + e.message, false);
+    return;
+  }
+  const data = await res.json();
+  if (res.status === 409) { setStatus('⏳ 已有任务运行中，请稍候', false); return; }
+  if (!res.ok) { setStatus('❌ ' + (data.error || '提交失败'), false); return; }
+  startPolling(data.task_id);
+}
+
+function startPolling(taskId) {
+  setStatus('<span class="spin"></span>任务运行中，约需 1 分钟，请稍候...', true);
+  logEl.style.display = 'block';
+  const timer = setInterval(async () => {
+    try {
+      const r = await (await fetch('/api/task/' + taskId)).json();
+      logEl.textContent = r.log_tail || '';
+      logEl.scrollTop = logEl.scrollHeight;
+      if (r.status === 'done') {
+        clearInterval(timer);
+        if (r.result && r.result.html) {
+          setStatus('✅ 任务完成，正在打开报告...', false);
+          setTimeout(() => { window.location.href = '/reports/' + r.result.html; }, 800);
+        } else {
+          setStatus('✅ 任务完成，但报告生成失败：' + (r.result && r.result.error ? r.result.error : ''), false);
+        }
+      } else if (r.status === 'failed') {
+        clearInterval(timer);
+        setStatus('❌ 任务失败：' + (r.error || '未知错误'), false);
+      }
+    } catch (e) {
+      clearInterval(timer);
+      setStatus('网络错误：' + e.message, false);
+    }
+  }, 1500);
+}
+
+async function loadRecent() {
+  try {
+    const idx = await (await fetch('/reports/index.json')).json();
+    const list = idx.reports || [];
+    const el = document.getElementById('recent');
+    if (!list.length) {
+      el.innerHTML = '<p class="empty">暂无报告，发起第一个任务吧。</p>';
+      return;
+    }
+    el.innerHTML = list.slice(0, 5).map(r => {
+      const title = r.title || '未命名报告';
+      const meta = ((r.created_at || '') + '').replace('T', ' ').slice(0, 16);
+      const score = r.score != null
+        ? `<span class="score score-${r.score >= 0.8 ? '优' : (r.score >= 0.6 ? '良' : '中')}">${r.score.toFixed(2)}</span>` : '';
+      const href = r.html ? ('/reports/' + r.html) : null;
+      return `<div class="report-item">${href
+        ? `<a href="${href}" target="_blank">${title}</a>`
+        : `<span style="flex:1">${title}</span>`}<span class="report-meta">${meta}${score ? ' ' + score : ''}</span></div>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('recent').innerHTML = '<p class="empty">归档索引不可用</p>';
+  }
+}
+
+runBtn.addEventListener('click', submitTask);
+queryEl.addEventListener('input', () => setStatus('', false));
+loadRecent();
+</script>
+</body>
+</html>

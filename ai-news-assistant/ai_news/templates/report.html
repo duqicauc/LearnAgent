@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ report.title }} — AI 信息搜索助手报告</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f5f6fa; --card: #ffffff; --text: #1f2430; --muted: #6b7280;
+  --accent: #4f46e5; --border: #e5e7eb; --tag: #eef2ff; --tag-text: #4338ca;
+  --good: #059669; --mid: #d97706; --low: #dc2626;
+}
+[data-theme="dark"] {
+  --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+  --accent: #818cf8; --border: #334155; --tag: #312e81; --tag-text: #c7d2fe;
+  --good: #34d399; --mid: #fbbf24; --low: #f87171;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 24px; max-width: 1200px; margin: 0 auto; transition: background .3s, color .3s;
+}
+header { margin-bottom: 24px; }
+h1 { font-size: 1.6rem; margin-bottom: 8px; }
+.subtitle { color: var(--muted); }
+.meta { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: .85rem; margin: 10px 0; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+.toolbar input, .toolbar select {
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--card); color: var(--text); font-size: .9rem;
+}
+.toolbar input { flex: 1; min-width: 200px; }
+button {
+  padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--card); color: var(--text); cursor: pointer; font-size: .9rem;
+  transition: background .2s;
+}
+button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* ── 概览指标条 ── */
+.overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.ov-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; text-align: center;
+}
+.ov-item .num { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.ov-item .label { font-size: .75rem; color: var(--muted); }
+/* ── 质量区 ── */
+.quality {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 18px; margin: 16px 0; display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+}
+.badge {
+  padding: 4px 12px; border-radius: 999px; font-size: .85rem; font-weight: 700; color: #fff;
+}
+.badge-优 { background: var(--good); }
+.badge-良 { background: var(--mid); }
+.badge-中 { background: var(--low); }
+.quality .q-text { font-size: .85rem; color: var(--muted); flex: 1; min-width: 240px; }
+.conf-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: .8rem; }
+.conf-bar {
+  width: 120px; height: 8px; border-radius: 999px; background: var(--border);
+  overflow: hidden;
+}
+.conf-bar i { display: block; height: 100%; background: var(--accent); }
+/* ── 速览 TLDR ── */
+.tldr { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin: 16px 0; }
+.tldr h2 { font-size: 1.05rem; margin-bottom: 10px; }
+.tldr-item {
+  display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px;
+  border-radius: 8px; cursor: pointer; font-size: .9rem;
+}
+.tldr-item:hover { background: var(--tag); }
+.tldr-item .dot { color: var(--accent); font-weight: 700; }
+.tldr-body { flex: 1; min-width: 0; }
+.tldr-why { font-size: .78rem; color: var(--muted); }
+/* ── 卡片 ── */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.tab { border-radius: 999px; }
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; display: flex; flex-direction: column; gap: 8px;
+  transition: transform .15s, box-shadow .15s; position: relative;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.card.hidden { display: none; }
+.card.read { opacity: .55; }
+.card.faved { border-color: #f59e0b; box-shadow: 0 0 0 1px #f59e0b; }
+.card h3 { font-size: 1rem; padding-right: 90px; }
+.card a { color: var(--accent); text-decoration: none; }
+.card a:hover { text-decoration: underline; }
+.card .note {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden; font-size: .88rem; color: var(--muted); flex: 1;
+}
+.card.expanded .note { -webkit-line-clamp: unset; overflow: visible; }
+.card.expanded { box-shadow: 0 0 0 2px var(--accent); }
+.card .impact { font-size: .85rem; color: var(--text); background: var(--tag); border-radius: 6px; padding: 4px 8px; }
+.card .url { font-size: .75rem; color: var(--muted); word-break: break-all; }
+.card .tag {
+  display: inline-block; font-size: .72rem; padding: 2px 8px; border-radius: 999px;
+  background: var(--tag); color: var(--tag-text); align-self: flex-start;
+}
+.time-badge {
+  font-size: .72rem; color: var(--muted); background: var(--bg);
+  padding: 2px 8px; border-radius: 999px; align-self: flex-start;
+}
+/* ── 置信度角标 ── */
+.conf {
+  position: absolute; top: 12px; right: 12px; font-size: .72rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px; color: #fff; cursor: help;
+}
+.conf-高 { background: var(--good); }
+.conf-中 { background: var(--mid); }
+.conf-低 { background: var(--low); }
+section h2 { font-size: 1.2rem; margin: 28px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+.chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.chart-box h3 { font-size: .95rem; margin-bottom: 10px; }
+.chart-note { font-size: .8rem; color: var(--muted); margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); }
+/* ── 数据来源表 ── */
+.sources table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.sources th, .sources td { padding: 10px 14px; text-align: left; font-size: .88rem; }
+.sources th { background: var(--tag); color: var(--tag-text); font-weight: 600; }
+.sources td { border-top: 1px solid var(--border); }
+.sources a { color: var(--accent); text-decoration: none; }
+.sources a:hover { text-decoration: underline; }
+.source-note { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+.trends ul { padding-left: 20px; }
+.trends li { margin: 8px 0; }
+.empty { color: var(--muted); padding: 20px; text-align: center; }
+footer { margin-top: 40px; text-align: center; color: var(--muted); font-size: .8rem; }
+details { margin: 8px 0; }
+/* ── 收藏 / 展开 ── */
+.fav {
+  position: absolute; top: 10px; right: 42px; background: none; border: none;
+  font-size: 1.1rem; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px;
+}
+.fav:hover { color: #f59e0b; background: none; border: none; }
+.card.faved .fav { color: #f59e0b; }
+.expand {
+  align-self: flex-start; background: none; border: none; color: var(--accent);
+  font-size: .78rem; cursor: pointer; padding: 0; display: none;
+}
+.expand:hover { color: var(--accent); text-decoration: underline; background: none; border: none; }
+/* ── 来源过滤 ── */
+.src-filter { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.src-opt { display: inline-flex; gap: 4px; align-items: center; font-size: .8rem; color: var(--muted); cursor: pointer; }
+.src-opt input { accent-color: var(--accent); cursor: pointer; }
+/* ── 图表离线降级表格（默认隐藏，Chart.js 不可用时显示）── */
+.chart-table { display: none; margin-top: 10px; }
+.chart-table table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.chart-table th, .chart-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+.chart-table th { color: var(--muted); font-weight: 600; }
+.no-chart canvas { display: none; }
+.no-chart .chart-table { display: block; }
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  body { padding: 14px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .cards { grid-template-columns: 1fr; }
+  .charts { grid-template-columns: 1fr; }
+  .overview { grid-template-columns: repeat(2, 1fr); }
+  .quality { flex-direction: column; align-items: flex-start; }
+}
+/* ── 打印导出 PDF ── */
+@media print {
+  body { padding: 0; background: #fff; color: #000; }
+  .toolbar, .tabs, .fav, .expand, #theme-toggle, .conf-bar-wrap { display: none !important; }
+  .card, .quality, .tldr, .chart-box, .sources table { box-shadow: none !important; break-inside: avoid; }
+  .card .note { display: block; -webkit-line-clamp: unset; overflow: visible; }
+  .charts canvas { display: none !important; }
+  .chart-table { display: block !important; }
+  .chart-table table { color: #000; }
+  .card.read { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="report-title">{{ report.title }}</h1>
+  <p class="subtitle">{{ report.summary }}</p>
+  <div class="meta">
+    <span>生成时间：{{ generated_at }}</span>
+    <span>信息来源：{{ overview.sources_count }} 个站点</span>
+    <span>信息条目：{{ overview.total }} 条</span>
+    {% if stats.deduped %} <span>去重：{{ stats.deduped }} 条</span>{% endif %}
+  </div>
+
+  {# ── 报告级质量区 + 总结级置信度 ── #}
+  <div class="quality">
+    <span class="badge badge-{{ quality.level }}">质量 {{ quality.level }} · {{ "%.2f"|format(quality.score) }}</span>
+    <div class="q-text">
+      <div>{{ quality.line }}</div>
+      <div>{{ quality.coverage_note }}</div>
+    </div>
+    <div class="conf-bar-wrap" title="{{ summary_conf.reason }}">
+      <span>总结置信度</span>
+      <span class="conf-bar"><i style="width: {{ summary_conf.score * 100 }}%"></i></span>
+      <span>{{ "%.2f"|format(summary_conf.score) }}</span>
+    </div>
+  </div>
+
+  {# ── 本期概览指标条 ── #}
+  <div class="overview">
+    <div class="ov-item"><div class="num">{{ overview.total }}</div><div class="label">信息条目</div></div>
+    <div class="ov-item"><div class="num">{{ overview.sources_count }}</div><div class="label">来源站点</div></div>
+    <div class="ov-item"><div class="num">{{ overview.span }}</div><div class="label">覆盖时间</div></div>
+    <div class="ov-item"><div class="num">{{ overview.fresh_24h }}%</div><div class="label">24h 内条目占比</div></div>
+    <div class="ov-item"><div class="num">{% for kw in overview.hot_keywords %}{{ kw }}{% if not loop.last %} · {% endif %}{% endfor %}</div><div class="label">热词 Top3</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="搜索条目（标题/解读/链接）..." aria-label="搜索条目">
+    <select id="sort" aria-label="排序方式">
+      <option value="date">最新优先</option>
+      <option value="title">按标题</option>
+      <option value="source">按来源</option>
+    </select>
+    <div class="src-filter" id="srcFilter" title="按来源过滤（可多选）" aria-label="按来源过滤"></div>
+    <button id="theme-toggle" aria-label="切换明暗主题">切换主题</button>
+  </div>
+</header>
+
+{# ── 本期速览 TLDR ── #}
+{% if analysis["tldr"] %}
+<section class="tldr">
+  <h2>本期速览（TLDR）</h2>
+  {% for t in analysis["tldr"] %}
+  <div class="tldr-item" data-title="{{ t.title | default('') | lower }}">
+    <span class="dot">{{ loop.index }}</span>
+    <div class="tldr-body">
+      <div>{{ t.point }}</div>
+      {% if t.why %}<div class="tldr-why">为什么重要：{{ t.why }}</div>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<div class="tabs" id="tabs" role="tablist" aria-label="报告章节切换">
+  <button class="tab active" data-tab="all" role="tab" aria-selected="true">全部</button>
+  {% for sec in report.sections %}
+  <button class="tab" data-tab="tab-{{ loop.index }}" role="tab" aria-selected="false">{{ sec.heading }}</button>
+  {% endfor %}
+</div>
+
+<main class="cards" id="cards">
+  {% for sec in report.sections %}
+    {% set outer_idx = loop.index %}
+    {% for item in sec["items"] %}
+    <article class="card" data-tab="tab-{{ outer_idx }}"
+             data-source="{{ item.source | default('') }}" data-title="{{ item.title | lower }}"
+             data-date="{{ item.published_at | default('') }}">
+      <span class="conf conf-{{ item.confidence_level }}" title="置信度 {{ '%.2f'|format(item.confidence_score) }}：来源可信度 {{ item.confidence_detail['来源'] }}；时效 {{ item.confidence_detail['时效'] }}；{{ item.confidence_detail['多源提及'] }}">{{ item.confidence_level }}</span>
+      <button class="fav" title="收藏此条" aria-label="收藏">☆</button>
+      <h3><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a></h3>
+      {% if item.impact %}<div class="impact">为什么重要：{{ item.impact }}</div>{% endif %}
+      <p class="note">{{ item.note }}</p>
+      <button class="expand" title="展开详情" aria-label="展开详情">展开</button>
+      <div>
+        {% for tag in item.tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+      </div>
+      <span class="time-badge">{% if item.is_recent %}近期{% else %}{{ item.published_at[:10] }}{% endif %}</span>
+      <span class="url">{{ item.url }}</span>
+    </article>
+    {% endfor %}
+  {% endfor %}
+  {% if not report.sections %}<p class="empty">暂无条目数据</p>{% endif %}
+</main>
+
+<section>
+  <h2>数据可视化</h2>
+  <div class="charts">
+    <div class="chart-box">
+      <h3>{{ charts.source.title }}</h3>
+      <canvas id="sourceChart" role="img" aria-label="{{ charts.source.title }}：{{ charts.source.conclusion }}"></canvas>
+      <div class="chart-table">
+        <table aria-label="来源分布数据表">
+          <thead><tr><th>来源</th><th>条目数</th></tr></thead>
+          <tbody>
+            {% for lb in charts.source.labels %}
+            <tr><td>{{ lb }}</td><td>{{ charts.source.values[loop.index0] }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="chart-note">{{ charts.source.conclusion }}</p>
+    </div>
+    <div class="chart-box">
+      <h3>{{ charts.category.title }}</h3>
+      <canvas id="categoryChart" role="img" aria-label="{{ charts.category.title }}：{{ charts.category.conclusion }}"></canvas>
+      <div class="chart-table">
+        <table aria-label="类别占比数据表">
+          <thead><tr><th>类别</th><th>条目数</th></tr></thead>
+          <tbody>
+            {% for lb in charts.category.labels %}
+            <tr><td>{{ lb }}</td><td>{{ charts.category.values[loop.index0] }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="chart-note">{{ charts.category.conclusion }}</p>
+    </div>
+    <div class="chart-box">
+      <h3>{{ charts.tag.title }}</h3>
+      <canvas id="tagChart" role="img" aria-label="{{ charts.tag.title }}：{{ charts.tag.conclusion }}"></canvas>
+      <div class="chart-table">
+        <table aria-label="标签频次数据表">
+          <thead><tr><th>标签</th><th>出现次数</th></tr></thead>
+          <tbody>
+            {% for lb in charts.tag.labels %}
+            <tr><td>{{ lb }}</td><td>{{ charts.tag.values[loop.index0] }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="chart-note">{{ charts.tag.conclusion }}</p>
+    </div>
+    {% if charts.trend.enabled %}
+    <div class="chart-box">
+      <h3>{{ charts.trend.title }}</h3>
+      <canvas id="trendChart" role="img" aria-label="{{ charts.trend.title }}：{{ charts.trend.conclusion }}"></canvas>
+      <div class="chart-table">
+        <table aria-label="时间趋势数据表">
+          <thead><tr><th>日期</th><th>条目数</th></tr></thead>
+          <tbody>
+            {% for lb in charts.trend.labels %}
+            <tr><td>{{ lb }}</td><td>{{ charts.trend.values[loop.index0] }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="chart-note">{{ charts.trend.conclusion }}</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="sources">
+  <h2>数据来源</h2>
+  <table>
+    <thead>
+      <tr><th>来源</th><th>条目数</th><th>占比</th></tr>
+    </thead>
+    <tbody>
+      {% for r in sources.rows %}
+      <tr>
+        <td>{% if r.link %}<a href="{{ r.link }}" target="_blank" rel="noopener">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}</td>
+        <td>{{ r.count }}</td>
+        <td>{{ r.pct }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if sources.deduped %}
+  <p class="source-note">去重合并 {{ sources.deduped }} 条（{{ sources.dedup_rate }}%），避免多源重复信息。</p>
+  {% endif %}
+</section>
+
+{% if analysis.trends %}
+<section class="trends">
+  <h2>趋势洞察</h2>
+  <ul>
+    {% for t in analysis.trends %}<li>{{ t }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<footer>由 AI 信息搜索助手自动生成 · 数据来源：HuggingFace / GitHub / arXiv / 量子位 / WIRED</footer>
+
+<script>
+// ── URL 状态同步（?tab=&q=&sort=&src=）──
+const params = new URLSearchParams(location.search);
+function saveState() {
+  try {
+    const p = new URLSearchParams();
+    const tab = document.querySelector('.tab.active').dataset.tab;
+    if (tab !== 'all') p.set('tab', tab);
+    if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
+    if (sortSel.value !== 'date') p.set('sort', sortSel.value);
+    if (activeSrcs.size) p.set('src', [...activeSrcs].join(','));
+    const qs = p.toString();
+    history.replaceState(null, '', qs ? '?' + qs : location.pathname);
+  } catch (e) { /* file:// 协议下忽略 */ }
+}
+
+// ── 主题切换 ──
+const root = document.documentElement;
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+  root.dataset.theme = next;
+  localStorage.setItem('theme', next);
+  updateCharts(next);
+});
+if (localStorage.getItem('theme')) root.dataset.theme = localStorage.getItem('theme');
+
+// ── Tab 切换 ──
+const tabs = document.querySelectorAll('.tab');
+function activateTab(tab) {
+  tabs.forEach(t => {
+    t.classList.toggle('active', t === tab);
+    t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+  });
+}
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  activateTab(tab);
+  filterCards();
+  saveState();
+}));
+
+// ── 来源过滤（动态构建 checkbox，与 Tab/搜索叠加）──
+const srcFilter = document.getElementById('srcFilter');
+let activeSrcs = new Set();
+function buildSrcFilter() {
+  const sources = new Set();
+  document.querySelectorAll('.card').forEach(c => {
+    const s = c.dataset.source;
+    if (s) sources.add(s);
+  });
+  srcFilter.innerHTML = '';
+  [...sources].sort((a, b) => a.localeCompare(b, 'zh')).forEach(s => {
+    const label = document.createElement('label');
+    label.className = 'src-opt';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = s;
+    cb.checked = activeSrcs.has(s);
+    cb.addEventListener('change', () => {
+      if (cb.checked) activeSrcs.add(s); else activeSrcs.delete(s);
+      filterCards();
+      saveState();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(' ' + s));
+    srcFilter.appendChild(label);
+  });
+}
+
+// ── 搜索 + Tab + 来源 三重过滤 ──
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', () => { filterCards(); saveState(); });
+function filterCards() {
+  const activeTab = document.querySelector('.tab.active').dataset.tab;
+  const q = searchInput.value.trim().toLowerCase();
+  document.querySelectorAll('.card').forEach(card => {
+    const tabOk = activeTab === 'all' || card.dataset.tab === activeTab;
+    const srcOk = activeSrcs.size === 0 || activeSrcs.has(card.dataset.source);
+    const text = (card.textContent || '').toLowerCase();
+    const qOk = !q || text.includes(q);
+    card.classList.toggle('hidden', !(tabOk && srcOk && qOk));
+  });
+}
+
+// ── 排序（最新优先 / 标题 / 来源）──
+const sortSel = document.getElementById('sort');
+sortSel.addEventListener('change', () => { applySort(); saveState(); });
+function applySort() {
+  const cards = Array.from(document.querySelectorAll('.card'));
+  const container = document.getElementById('cards');
+  const mode = sortSel.value;
+  cards.sort((a, b) => {
+    if (mode === 'title') return a.dataset.title.localeCompare(b.dataset.title);
+    if (mode === 'source') return (a.dataset.source || '').localeCompare(b.dataset.source || '');
+    const da = a.dataset.date || '0000', db = b.dataset.date || '0000';
+    return db.localeCompare(da);
+  });
+  cards.forEach(c => container.appendChild(c));
+}
+
+// ── 收藏 / 已读（localStorage 持久化）──
+const favKey = 'an_favs', readKey = 'an_reads';
+let favs = new Set(JSON.parse(localStorage.getItem(favKey) || '[]'));
+let reads = new Set(JSON.parse(localStorage.getItem(readKey) || '[]'));
+document.querySelectorAll('.card').forEach(card => {
+  const link = card.querySelector('a');
+  const url = link.href;
+  const favBtn = card.querySelector('.fav');
+  const applyState = () => {
+    favBtn.textContent = favs.has(url) ? '★' : '☆';
+    favBtn.setAttribute('aria-pressed', favs.has(url) ? 'true' : 'false');
+    card.classList.toggle('faved', favs.has(url));
+    card.classList.toggle('read', reads.has(url));
+  };
+  favBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (favs.has(url)) favs.delete(url); else favs.add(url);
+    localStorage.setItem(favKey, JSON.stringify([...favs]));
+    applyState();
+  });
+  card.addEventListener('click', () => {
+    if (!reads.has(url)) {
+      reads.add(url);
+      localStorage.setItem(readKey, JSON.stringify([...reads]));
+      applyState();
+    }
+  });
+  applyState();
+});
+
+// ── 卡片展开 / 收起（长文截断）──
+document.querySelectorAll('.card').forEach(card => {
+  const note = card.querySelector('.note');
+  const btn = card.querySelector('.expand');
+  const check = () => {
+    if (note.scrollHeight > note.clientHeight + 2) btn.style.display = 'inline-block';
+  };
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    card.classList.toggle('expanded');
+    btn.textContent = card.classList.contains('expanded') ? '收起' : '展开';
+  });
+  setTimeout(check, 50);
+  window.addEventListener('resize', check);
+});
+
+// ── TLDR 速览点击定位 ──
+document.querySelectorAll('.tldr-item').forEach(el => {
+  el.addEventListener('click', () => {
+    tabs.forEach(tb => tb.classList.remove('active'));
+    document.querySelector('[data-tab="all"]').classList.add('active');
+    filterCards();
+    saveState();
+    const t = (el.dataset.title || '').toLowerCase();
+    const card = Array.from(document.querySelectorAll('.card'))
+      .find(c => t && (c.dataset.title || '').includes(t));
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+});
+
+// ── 初始化：应用 URL 状态 ──
+(function init() {
+  const q = params.get('q');
+  if (q) searchInput.value = q;
+  if (params.get('sort')) sortSel.value = params.get('sort');
+  const src = params.get('src');
+  if (src) activeSrcs = new Set(src.split(','));
+  const tab = params.get('tab');
+  if (tab) {
+    const target = document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (target) activateTab(target);
+  }
+  buildSrcFilter();
+  filterCards();
+  applySort();
+})();
+
+// ── Chart.js 图表（含离线降级：库加载失败时切换为 HTML 数据表）──
+const chartData = {{ charts | tojson }};
+const isDark = () => root.dataset.theme === 'dark';
+const gridColor = () => (isDark() ? 'rgba(148,163,184,.15)' : 'rgba(0,0,0,.06)');
+const tickColor = () => (isDark() ? '#94a3b8' : '#6b7280');
+let charts = {};
+
+// CDN 加载失败（离线/网络异常）→ 显示降级表格
+window.addEventListener('error', e => {
+  const t = e.target;
+  if (t && t.tagName === 'SCRIPT' && /chart/i.test(t.src || '')) {
+    document.body.classList.add('no-chart');
+  }
+}, true);
+
+function buildCharts() {
+  if (typeof Chart === 'undefined') {
+    document.body.classList.add('no-chart');
+    return;
+  }
+  document.body.classList.remove('no-chart');
+  const font = { color: tickColor() };
+  if (charts.source) charts.source.destroy();
+  if (charts.category) charts.category.destroy();
+  if (charts.tag) charts.tag.destroy();
+  if (charts.trend) charts.trend.destroy();
+  charts.source = new Chart(document.getElementById('sourceChart'), {
+    type: 'bar',
+    data: { labels: chartData.source.labels, datasets: [{ label: '条目数', data: chartData.source.values, backgroundColor: chartData.source.colors }] },
+    options: { plugins: { legend: { display: false } }, scales: { x: { ticks: font, grid: { color: gridColor() } }, y: { ticks: font, grid: { color: gridColor() } } } }
+  });
+  charts.category = new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: { labels: chartData.category.labels, datasets: [{ data: chartData.category.values, backgroundColor: chartData.category.colors }] },
+    options: { plugins: { legend: { labels: { color: tickColor() } } } }
+  });
+  charts.tag = new Chart(document.getElementById('tagChart'), {
+    type: 'bar',
+    data: { labels: chartData.tag.labels, datasets: [{ label: '出现次数', data: chartData.tag.values, backgroundColor: chartData.tag.colors }] },
+    options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: font, grid: { color: gridColor() } }, y: { ticks: font, grid: { color: gridColor() } } } }
+  });
+  if (chartData.trend.enabled) {
+    charts.trend = new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: { labels: chartData.trend.labels, datasets: [{ label: '每日条目数', data: chartData.trend.values, borderColor: chartData.trend.colors, backgroundColor: chartData.trend.colors + '33', fill: true, tension: 0.3 }] },
+      options: { plugins: { legend: { display: false } }, scales: { x: { ticks: font, grid: { color: gridColor() } }, y: { ticks: font, grid: { color: gridColor() }, beginAtZero: true } } }
+    });
+  }
+}
+function updateCharts() { buildCharts(); }
+buildCharts();
+</script>
+</body>
+</html>

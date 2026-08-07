@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "name": "张三",
+    "age": 28,
+    "email": "zhangsan@example.com",
+    "department": "工程部",
+    "position": "高级工程师",
+    "salary": 25000,
+    "city": "北京",
+    "skills": ["Python", "Go", "Docker"],
+    "active": true
+  },
+  {
+    "id": 2,
+    "name": "李四",
+    "age": 32,
+    "email": "lisi@example.com",
+    "department": "产品部",
+    "position": "产品经理",
+    "salary": 22000,
+    "city": "上海",
+    "skills": ["需求分析", "项目管理", "SQL"],
+    "active": true
+  },
+  {
+    "id": 3,
+    "name": "王五",
+    "age": 25,
+    "email": "wangwu@example.com",
+    "department": "设计部",
+    "position": "UI设计师",
+    "salary": 15000,
+    "city": "深圳",
+    "skills": ["Figma", "Sketch", "CSS"],
+    "active": true
+  },
+  {
+    "id": 4,
+    "name": "赵六",
+    "age": 35,
+    "email": "zhaoliu@example.com",
+    "department": "工程部",
+    "position": "架构师",
+    "salary": 35000,
+    "city": "北京",
+    "skills": ["Java", "Kubernetes", "Redis", "MySQL"],
+    "active": true
+  },
+  {
+    "id": 5,
+    "name": "钱七",
+    "age": 29,
+    "email": "qianqi@example.com",
+    "department": "市场部",
+    "position": "市场专员",
+    "salary": 12000,
+    "city": "广州",
+    "skills": ["SEO", "数据分析"],
+    "active": false
+  },
+  {
+    "id": 6,
+    "name": "孙八",
+    "age": 41,
+    "email": "sunba@example.com",
+    "department": "工程部",
+    "position": "技术总监",
+    "salary": 50000,
+    "city": "杭州",
+    "skills": ["Python", "Java", "分布式系统", "团队管理"],
+    "active": true
+  },
+  {
+    "id": 7,
+    "name": "周九",
+    "age": 22,
+    "email": "zhoujiu@example.com",
+    "department": "设计部",
+    "position": "实习生",
+    "salary": 5000,
+    "city": "成都",
+    "skills": ["Photoshop"],
+    "active": true
+  },
+  {
+    "id": 8,
+    "name": "吴十",
+    "age": 38,
+    "email": "wushi@example.com",
+    "department": "产品部",
+    "position": "产品总监",
+    "salary": 45000,
+    "city": "上海",
+    "skills": ["需求分析", "战略规划", "用户研究"],
+    "active": true
+  }
+]

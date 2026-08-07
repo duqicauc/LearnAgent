@@ -1,0 +1,122 @@
+[
+  {
+    "ticket_id": "TKT-20260731-001",
+    "title": "order-service 频繁报数据库连接超时",
+    "severity": "P1",
+    "status": "open",
+    "assignee": "张工",
+    "reporter": "监控系统",
+    "created_at": "2026-07-31 10:12:05",
+    "updated_at": "2026-07-31 10:30:00",
+    "description": "从 10:12 开始，order-service 持续出现数据库连接超时错误，connection pool exhausted。影响订单创建和查询功能。",
+    "related_logs": ["t-001", "t-016"],
+    "related_release": "REL-2026-07-31-001",
+    "tags": ["数据库", "连接池", "order-service"],
+    "comments": [
+      {"time": "2026-07-31 10:15:00", "author": "张工", "content": "已确认问题，正在排查数据库连接池配置"},
+      {"time": "2026-07-31 10:25:00", "author": "张工", "content": "怀疑是刚发布的 v2.3.1 引入的连接池泄漏，正在验证"}
+    ]
+  },
+  {
+    "ticket_id": "TKT-20260731-002",
+    "title": "payment-service 调用第三方支付网关 502",
+    "severity": "P2",
+    "status": "in_progress",
+    "assignee": "李工",
+    "reporter": "支付监控",
+    "created_at": "2026-07-31 10:14:45",
+    "updated_at": "2026-07-31 10:20:00",
+    "description": "调用支付宝支付网关返回 502 Bad Gateway，持续约 2 分钟，影响支付成功率",
+    "related_logs": ["t-003"],
+    "related_release": null,
+    "tags": ["支付", "第三方网关", "502"],
+    "comments": [
+      {"time": "2026-07-31 10:18:00", "author": "李工", "content": "已联系支付宝技术支持，对方确认是其网关侧问题"}
+    ]
+  },
+  {
+    "ticket_id": "TKT-20260731-003",
+    "title": "inventory-service SKU A-001 库存为 0",
+    "severity": "P2",
+    "status": "open",
+    "assignee": "王工",
+    "reporter": "业务系统",
+    "created_at": "2026-07-31 10:19:15",
+    "updated_at": "2026-07-31 10:22:00",
+    "description": "SKU A-001 在仓库 WH-BJ-01 可用库存为 0，订单无法扣减库存",
+    "related_logs": ["t-008"],
+    "related_release": "REL-2026-07-30-001",
+    "tags": ["库存", "SKU", "inventory-service"],
+    "comments": []
+  },
+  {
+    "ticket_id": "TKT-20260730-004",
+    "title": "gateway v4.0.0 发布失败需回滚",
+    "severity": "P0",
+    "status": "closed",
+    "assignee": "赵工",
+    "reporter": "发布系统",
+    "created_at": "2026-07-29 20:00:30",
+    "updated_at": "2026-07-29 20:05:00",
+    "description": "gateway v4.0.0 发布后所有服务路由失败，已紧急回滚至 v3.9.2",
+    "related_logs": ["t-010"],
+    "related_release": "REL-2026-07-29-003",
+    "tags": ["发布失败", "gateway", "回滚"],
+    "comments": [
+      {"time": "2026-07-29 20:01:00", "author": "赵工", "content": "已触发回滚流程"},
+      {"time": "2026-07-29 20:05:00", "author": "赵工", "content": "回滚完成，服务恢复正常"},
+      {"time": "2026-07-29 20:10:00", "author": "赵工", "content": "根因已定位：新路由引擎与现有路由配置 schema 不兼容"}
+    ]
+  },
+  {
+    "ticket_id": "TKT-20260730-005",
+    "title": "payment-service 退款金额超限",
+    "severity": "P3",
+    "status": "open",
+    "assignee": "李工",
+    "reporter": "客服系统",
+    "created_at": "2026-07-31 10:23:15",
+    "updated_at": "2026-07-31 10:23:15",
+    "description": "订单 O-20260730-0099 退款失败，退款金额超过单笔限额",
+    "related_logs": ["t-012"],
+    "related_release": null,
+    "tags": ["退款", "支付", "限额"],
+    "comments": []
+  },
+  {
+    "ticket_id": "TKT-20260729-006",
+    "title": "user-service 短信发送失败",
+    "severity": "P3",
+    "status": "closed",
+    "assignee": "孙工",
+    "reporter": "用户反馈",
+    "created_at": "2026-07-31 10:29:55",
+    "updated_at": "2026-07-31 10:35:00",
+    "description": "用户登录短信验证码发送失败，短信提供商超时",
+    "related_logs": ["t-018"],
+    "related_release": "REL-2026-07-29-002",
+    "tags": ["短信", "user-service", "第三方依赖"],
+    "comments": [
+      {"time": "2026-07-31 10:32:00", "author": "孙工", "content": "已切换备用短信通道"},
+      {"time": "2026-07-31 10:35:00", "author": "孙工", "content": "问题已解决"}
+    ]
+  },
+  {
+    "ticket_id": "TKT-20260728-007",
+    "title": "order-service v2.2.0 状态机缺陷回滚",
+    "severity": "P1",
+    "status": "closed",
+    "assignee": "张工",
+    "reporter": "QA 团队",
+    "created_at": "2026-07-27 15:30:00",
+    "updated_at": "2026-07-27 16:00:00",
+    "description": "新订单状态机导致部分订单卡在待支付状态无法流转，已回滚",
+    "related_logs": [],
+    "related_release": "REL-2026-07-27-001",
+    "tags": ["回滚", "order-service", "状态机"],
+    "comments": [
+      {"time": "2026-07-27 15:45:00", "author": "张工", "content": "已回滚至 v2.1.5"},
+      {"time": "2026-07-27 16:00:00", "author": "张工", "content": "正在重新设计状态机"}
+    ]
+  }
+]

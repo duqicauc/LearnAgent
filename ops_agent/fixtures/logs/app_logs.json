@@ -1,0 +1,164 @@
+[
+  {
+    "timestamp": "2026-07-31 10:12:03",
+    "service": "order-service",
+    "level": "ERROR",
+    "message": "数据库连接超时，重试 3 次仍失败，connection pool exhausted",
+    "trace_id": "t-001",
+    "host": "order-srv-01",
+    "duration_ms": 3012
+  },
+  {
+    "timestamp": "2026-07-31 10:13:15",
+    "service": "order-service",
+    "level": "WARN",
+    "message": "Redis 缓存命中率下降至 65%，热点 key: order:list:user:10086",
+    "trace_id": "t-002",
+    "host": "order-srv-01",
+    "duration_ms": 45
+  },
+  {
+    "timestamp": "2026-07-31 10:14:42",
+    "service": "payment-service",
+    "level": "ERROR",
+    "message": "调用第三方支付网关返回 502 Bad Gateway，channel=alipay",
+    "trace_id": "t-003",
+    "host": "pay-srv-01",
+    "duration_ms": 5003
+  },
+  {
+    "timestamp": "2026-07-31 10:15:01",
+    "service": "user-service",
+    "level": "INFO",
+    "message": "用户登录成功，uid=10086，login_source=mobile",
+    "trace_id": "t-004",
+    "host": "user-srv-02",
+    "duration_ms": 120
+  },
+  {
+    "timestamp": "2026-07-31 10:16:22",
+    "service": "order-service",
+    "level": "ERROR",
+    "message": "下游 inventory-service 响应超时，timeout=3000ms，sku=A-001",
+    "trace_id": "t-005",
+    "host": "order-srv-02",
+    "duration_ms": 3005
+  },
+  {
+    "timestamp": "2026-07-31 10:17:55",
+    "service": "gateway",
+    "level": "WARN",
+    "message": "部分节点 CPU 使用率超过 85%，node=gateway-03",
+    "trace_id": "t-006",
+    "host": "gateway-03",
+    "duration_ms": 0
+  },
+  {
+    "timestamp": "2026-07-31 10:18:30",
+    "service": "payment-service",
+    "level": "INFO",
+    "message": "支付回调处理完成，order_id=O-20260731-0001，channel=wechat",
+    "trace_id": "t-007",
+    "host": "pay-srv-02",
+    "duration_ms": 320
+  },
+  {
+    "timestamp": "2026-07-31 10:19:12",
+    "service": "inventory-service",
+    "level": "ERROR",
+    "message": "库存扣减失败：sku=A-001 可用库存为 0，warehouse=WH-BJ-01",
+    "trace_id": "t-008",
+    "host": "inv-srv-01",
+    "duration_ms": 88
+  },
+  {
+    "timestamp": "2026-07-31 10:20:03",
+    "service": "order-service",
+    "level": "INFO",
+    "message": "订单创建成功，order_id=O-20260731-0002，amount=299.00",
+    "trace_id": "t-009",
+    "host": "order-srv-01",
+    "duration_ms": 210
+  },
+  {
+    "timestamp": "2026-07-31 10:21:45",
+    "service": "gateway",
+    "level": "ERROR",
+    "message": "网关路由失败，upstream=order-service，reason=no healthy nodes",
+    "trace_id": "t-010",
+    "host": "gateway-01",
+    "duration_ms": 15
+  },
+  {
+    "timestamp": "2026-07-31 10:22:30",
+    "service": "user-service",
+    "level": "WARN",
+    "message": "用户信息缓存失效，uid=10086，cache_key=user:info:10086",
+    "trace_id": "t-011",
+    "host": "user-srv-01",
+    "duration_ms": 60
+  },
+  {
+    "timestamp": "2026-07-31 10:23:10",
+    "service": "payment-service",
+    "level": "ERROR",
+    "message": "支付退款失败，order_id=O-20260730-0099，reason=refund amount exceeds limit",
+    "trace_id": "t-012",
+    "host": "pay-srv-01",
+    "duration_ms": 1500
+  },
+  {
+    "timestamp": "2026-07-31 10:24:00",
+    "service": "order-service",
+    "level": "DEBUG",
+    "message": "定时任务 started: order-cleanup, batch_size=1000",
+    "trace_id": "t-013",
+    "host": "order-srv-02",
+    "duration_ms": 2
+  },
+  {
+    "timestamp": "2026-07-31 10:25:18",
+    "service": "inventory-service",
+    "level": "WARN",
+    "message": "库存同步延迟，lag=120s，source=erp",
+    "trace_id": "t-014",
+    "host": "inv-srv-02",
+    "duration_ms": 0
+  },
+  {
+    "timestamp": "2026-07-31 10:26:44",
+    "service": "gateway",
+    "level": "INFO",
+    "message": "限流配置已更新，rate_limit=5000/s，scope=global",
+    "trace_id": "t-015",
+    "host": "gateway-02",
+    "duration_ms": 1
+  },
+  {
+    "timestamp": "2026-07-31 10:27:09",
+    "service": "order-service",
+    "level": "ERROR",
+    "message": "数据库连接超时，connection pool exhausted，active=50/50",
+    "trace_id": "t-016",
+    "host": "order-srv-01",
+    "duration_ms": 3008
+  },
+  {
+    "timestamp": "2026-07-31 10:28:33",
+    "service": "payment-service",
+    "level": "INFO",
+    "message": "对账任务完成，total_amount=1,234,567.89，records=5821",
+    "trace_id": "t-017",
+    "host": "pay-srv-02",
+    "duration_ms": 45000
+  },
+  {
+    "timestamp": "2026-07-31 10:29:50",
+    "service": "user-service",
+    "level": "ERROR",
+    "message": "短信发送失败，phone=138****1234，reason=provider timeout",
+    "trace_id": "t-018",
+    "host": "user-srv-02",
+    "duration_ms": 6000
+  }
+]
