@@ -1,28 +1,25 @@
-"""demo04：AI 信息搜索助手一键演示入口。
+"""CLI 入口：AI 信息搜索助手一键演示。
 
-运行方式：
-    python demo04.py                          # 完整模式（交互式报告）
-    python demo04.py --quick "抓取AI论文动态"  # 快速模式 + 自定义指令
+运行方式（需在项目根目录）：
+    python3 -m ai_news.cli                          # 完整模式（交互式报告）
+    python3 -m ai_news.cli --quick "抓取AI论文动态"  # 快速模式 + 自定义指令
 
 流程：任务编排（规划→抓取→管道→分析→报告）→ 生成交互式 HTML 报告。
 """
 import argparse
 import json
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from ai_news.core.evaluator import Evaluator
-from ai_news.core.memory import Memory
-from ai_news.main import run_task
-from ai_news.report_generator import generate_report, update_archive_index
+from .core.evaluator import Evaluator
+from .core.memory import Memory
+from .main import run_task
+from .report_generator import generate_report, update_archive_index
 
 DEFAULT_QUERY = "抓取本周最新的 AI 前沿动态，重点关注模型发布与产业资讯"
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="AI 信息搜索助手演示")
+    parser = argparse.ArgumentParser(description="AI 信息搜索助手")
     parser.add_argument("--query", default=DEFAULT_QUERY, help="任务指令")
     parser.add_argument("--quick", action="store_true", help="快速模式")
     args = parser.parse_args()

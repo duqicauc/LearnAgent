@@ -101,7 +101,7 @@ pip install -r requirements.txt
 cp .env.example .env   # 填入 Key
 python -m web.app       # 启动 Web 服务（默认 8080）
 # 或 CLI 方式：
-python demo04.py --query "抓取本周 AI 动态" --quick
+python3 -m ai_news.cli --query "抓取本周 AI 动态" --quick
 ```
 
 ## 常见问题

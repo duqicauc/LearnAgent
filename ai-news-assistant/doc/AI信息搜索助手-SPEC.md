@@ -283,7 +283,7 @@ ai-news-assistant/
 │   └── templates/
 │       └── report.html        # Jinja2 交互式模板
 ├── data/                      # 运行时数据（记忆、缓存、历史报告、日志）
-├── demo04.py                  # 一键演示入口
+├── ai_news/cli.py                 # 一键演示入口
 ├── AI信息搜索助手-SPEC.md     # 本文件
 ├── AI信息搜索助手-PLAN.md     # 实施计划
 ├── requirements.txt

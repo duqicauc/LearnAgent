@@ -200,7 +200,7 @@ def test_archive_index():
         assert data["reports"][0]["title"] == "AI 前沿动态测试报告"
         assert data["reports"][0]["item_count"] == 8
 
-        # 同 task_id 覆盖：demo04 生成 HTML 后补写文件名
+        # 同 task_id 覆盖：CLI 生成 HTML 后补写文件名
         rg.update_archive_index(
             sample_task_output(task_id="aa001122"), html_path=Path("ai_news_v2.html")
         )

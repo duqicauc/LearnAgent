@@ -92,10 +92,10 @@ M1 核心骨架 ──► M2 Scraper+数据管道 ──► M3 多智能体编�
 |---|---|---|---|
 | T5.1 | `ai_news/templates/report.html` | Jinja2 模板：顶部摘要、卡片网格、Chart.js 图表（站点分布/时间趋势/类别占比/热词）、Tab 切换、搜索筛选、排序、亮/暗主题 | 浏览器打开各交互可用 |
 | T5.2 | `ai_news/report_generator.py` | 渲染器：报告 JSON → HTML 单文件；快速模式（摘要+Top10）/完整模式 | 生成有效 HTML |
-| T5.3 | `demo04.py` | 一键演示入口：对话循环 + 报告生成提示（输出路径） | `python demo04.py` 端到端运行 |
+| T5.3 | `ai_news/cli.py` | 一键演示入口：对话循环 + 报告生成提示（输出路径） | `python3 -m ai_news.cli` 端到端运行 |
 | T5.4 | 全量回归 | 16 项知识点对照 SPEC §9 矩阵逐项验收 + 边界用例（空结果站点、超时、注入、循环） | 矩阵 16 项全部通过 |
 
-**M5 验收**：`python demo04.py` → 输入「抓取本周 AI 前沿动态」→ 生成 `data/reports/ai_news_YYYYMMDD_HHMMSS.html` → 浏览器验证可视化与交互。
+**M5 验收**：`python3 -m ai_news.cli` → 输入「抓取本周 AI 前沿动态」→ 生成 `data/reports/ai_news_YYYYMMDD_HHMMSS.html` → 浏览器验证可视化与交互。
 
 ---
 
@@ -161,7 +161,7 @@ ai-news-assistant/
 │   └── templates/
 │       └── report.html             # M5 T5.1
 ├── data/                           # 运行时：logs/cache/memory/reports
-├── demo04.py                       # M5 T5.3
+├── ai_news/cli.py                  # M5 T5.3
 ├── AI信息搜索助手-SPEC.md
 ├── AI信息搜索助手-PLAN.md
 ├── requirements.txt                # M1 T1.1

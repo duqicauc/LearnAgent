@@ -13,7 +13,7 @@ LearnAgent/
 ├── demo03.py            # Demo3：Function Calling（JSON 数据库查询工具）
 ├── users.json           # Demo3 使用的演示用户数据库
 ├── requirements.txt     # 根目录依赖（openai / python-dotenv / pytest）
-├── ai-news-assistant/   # 产品一：AI 信息搜索助手（Web + Docker，含 demo04 CLI）
+├── ai-news-assistant/   # 产品一：AI 信息搜索助手（Web + Docker + CLI）
 └── ops_agent/           # 产品二：运维智能体框架（审批/审计/记忆）
 ```
 
@@ -88,7 +88,7 @@ pip install -r requirements.txt
 cp .env.example .env            # 填入 Key
 python -m web.app               # 启动 Web 服务（默认 8080）
 # 或 CLI 方式：
-python demo04.py --query "抓取本周 AI 动态" --quick
+python3 -m ai_news.cli --query "抓取本周 AI 动态" --quick
 ```
 
 能力特性：

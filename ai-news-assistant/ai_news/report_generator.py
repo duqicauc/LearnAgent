@@ -431,7 +431,7 @@ def update_archive_index(
     """维护归档索引 data/reports/index.json，并刷新 archive.html 浏览页。
 
     每期任务一条记录：时间 / 标题 / 摘要 / 条目数 / 来源 / HTML / 评估分。
-    同 task_id 覆盖（demo04 生成 HTML 后可补写文件名）。返回 index.json 路径。
+    同 task_id 覆盖（CLI 生成 HTML 后可补写文件名）。返回 index.json 路径。
     """
     index: Dict[str, Any] = {"reports": []}
     index_path = _archive_index()
