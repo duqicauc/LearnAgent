@@ -1,17 +1,20 @@
 """O4 验收脚本：报告渲染单测（Jinja2 渲染 / 图表数据 / 字段容错）。
 
 运行方式：
-    python test_report.py        # 直接运行全部用例
-    pytest test_report.py        # 也可被 pytest 收集
+    python tests/test_report.py   # 直接运行全部用例
+    pytest tests/                 # 或从项目根跑 pytest
 
 说明：所有用例把 report_generator.OUTPUT_DIR 指向临时目录，
 不会触碰真实报告数据目录。
 """
 import json
 import shutil
+import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # 项目根入 path
 
 import ai_news.report_generator as rg
 

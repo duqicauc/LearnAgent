@@ -17,6 +17,28 @@
 | [报告优化计划](doc/AI信息搜索助手-报告优化计划.md) | 报告视觉与交互优化迭代记录 |
 | [产品化打包计划](doc/AI信息搜索助手-产品化打包计划.md) | Docker 产品化交付的实施计划 |
 
+## 测试
+
+测试集中在 `tests/` 目录，共 50 个用例（离线单测，不依赖外网）：
+
+| 文件 | 覆盖范围 | 用例数 |
+|---|---|---|
+| test_web.py | Web 路由 / 任务生命周期 / 单任务锁 / 鉴权（含中文密码） | 10 |
+| test_core.py | 安全 / 缓存 / 上下文压缩 / RAG / 记忆 / 状态机 / 工具注册表 | 19 |
+| test_pipeline.py | 数据管道：停用词 / 关键词 / 去重多源统计 | 8 |
+| test_report.py | 报告渲染 / 图表数据 / 三级置信度 / 归档索引 | 7 |
+| test_scraper_parsers.py | 各站点标签与时间解析纯函数 | 6 |
+
+运行方式（任选其一）：
+
+```bash
+python3 tests/test_web.py        # 单个文件
+python3 tests/test_core.py
+pytest tests/                    # 全部（需安装 pytest）
+```
+
+> `test_scrapers.py` 是网络验收脚本（依赖外网），非离线单测，需手动运行。
+
 ## 快速开始（Docker 推荐）
 
 前置条件：已安装 Docker（含 compose 插件，`docker compose version` 可验证）。

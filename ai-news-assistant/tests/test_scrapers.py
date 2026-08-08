@@ -1,10 +1,15 @@
 """M2 验收脚本：逐个运行 5 个 Scraper → 五阶段管道 → 缓存命中验证。
 
+⚠️ 依赖外网：本脚本是网络验收脚本，不是离线单测。
 运行方式：
-    python test_scrapers.py
+    python tests/test_scrapers.py
 """
 import json
+import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # 项目根入 path
 
 from ai_news.core.cache import TTLCache
 from ai_news.pipeline import run_pipeline

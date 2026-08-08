@@ -1,9 +1,14 @@
 """管道单测：标签/热词过滤（停用词）、clean 兜底、去重多源统计。
 
 运行方式：
-    python3 test_pipeline.py        # 直接运行全部用例
-    pytest test_pipeline.py         # 也可被 pytest 收集
+    python tests/test_pipeline.py   # 直接运行全部用例
+    pytest tests/                   # 或从项目根跑 pytest
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # 项目根入 path
+
 from ai_news.pipeline import (
     STOP_WORDS,
     _extract_keywords,

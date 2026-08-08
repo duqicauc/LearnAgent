@@ -1,10 +1,14 @@
-"""Web 层冒烟单测：路由可用 / 任务生命周期 / 单任务锁。
+"""Web 层冒烟单测：路由可用 / 任务生命周期 / 单任务锁 / 鉴权。
 
 运行方式：
-    python test_web.py        # 直接运行全部用例
-    pytest test_web.py        # 也可被 pytest 收集
+    python tests/test_web.py   # 直接运行全部用例
+    pytest tests/              # 或从项目根跑 pytest
 """
+import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # 项目根入 path
 
 import web.app as app_module
 
