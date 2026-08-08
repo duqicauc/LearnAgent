@@ -88,6 +88,65 @@ def test_single_task_lock():
         time.sleep(0.1)
 
 
+# ── 权限验证（方案 A：单访问密码）──
+
+def test_auth_disabled_by_default():
+    """未配置 ACCESS_PASSWORD 时无需登录。"""
+    old = app_module.ACCESS_PASSWORD
+    app_module.ACCESS_PASSWORD = ""
+    try:
+        r = app.test_client().get("/")
+        assert r.status_code == 200
+    finally:
+        app_module.ACCESS_PASSWORD = old
+
+
+def test_auth_flow():
+    """开启鉴权后：未登录拦截 / 错误密码拒绝 / 正确密码进入 / API 401 / healthz 放行。"""
+    old = app_module.ACCESS_PASSWORD
+    app_module.ACCESS_PASSWORD = "test123"
+    try:
+        c = app.test_client()
+        # 未登录访问首页 → 302 跳登录页
+        r = c.get("/")
+        assert r.status_code == 302 and "/login" in r.headers["Location"]
+
+        # 未登录访问 API → 401 JSON
+        r = c.get("/api/config")
+        assert r.status_code == 401
+        assert r.get_json()["error"]
+
+        # healthz 放行（容器健康检查不受影响）
+        r = c.get("/healthz")
+        assert r.status_code == 200
+
+        # 错误密码 → 200 + 错误提示（页面内展示，不重定向）
+        r = c.post("/login", data={"password": "wrong"})
+        assert r.status_code == 200
+        assert "访问密码错误" in r.get_data(as_text=True)
+
+        # 正确密码 → 302 回首页
+        r = c.post("/login", data={"password": "test123"})
+        assert r.status_code == 302
+        assert r.headers["Location"].endswith("/")
+
+        # 登录后访问首页成功
+        r = c.get("/")
+        assert r.status_code == 200
+        assert "AI 信息搜索助手" in r.get_data(as_text=True)
+
+        # 登录后 API 可用
+        r = c.get("/api/config")
+        assert r.status_code == 200
+
+        # 登出后再次被拦截
+        c.get("/logout")
+        r = c.get("/")
+        assert r.status_code == 302
+    finally:
+        app_module.ACCESS_PASSWORD = old
+
+
 def main() -> None:
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     failed = 0

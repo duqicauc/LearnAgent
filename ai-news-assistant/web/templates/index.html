@@ -108,6 +108,15 @@ function setStatus(text, busy) {
   runBtn.disabled = busy || !queryEl.value.trim();
 }
 
+// 会话过期/未登录：跳登录页（登录后回跳当前页）
+function handleAuth(res) {
+  if (res.status === 401) {
+    window.location.href = '/login?next=' + encodeURIComponent(location.pathname);
+    return true;
+  }
+  return false;
+}
+
 async function submitTask() {
   const q = queryEl.value.trim();
   if (!q) { setStatus('请输入任务指令', false); return; }
@@ -124,6 +133,7 @@ async function submitTask() {
     setStatus('网络错误：' + e.message, false);
     return;
   }
+  if (handleAuth(res)) return;
   const data = await res.json();
   if (res.status === 409) { setStatus('⏳ 已有任务运行中，请稍候', false); return; }
   if (!res.ok) { setStatus('❌ ' + (data.error || '提交失败'), false); return; }
@@ -135,7 +145,9 @@ function startPolling(taskId) {
   logEl.style.display = 'block';
   const timer = setInterval(async () => {
     try {
-      const r = await (await fetch('/api/task/' + taskId)).json();
+      const resp = await fetch('/api/task/' + taskId);
+      if (handleAuth(resp)) { clearInterval(timer); return; }
+      const r = await resp.json();
       logEl.textContent = r.log_tail || '';
       logEl.scrollTop = logEl.scrollHeight;
       if (r.status === 'done') {
@@ -159,7 +171,9 @@ function startPolling(taskId) {
 
 async function loadRecent() {
   try {
-    const idx = await (await fetch('/reports/index.json')).json();
+    const resp = await fetch('/reports/index.json');
+    if (handleAuth(resp)) return;
+    const idx = await resp.json();
     const list = idx.reports || [];
     const el = document.getElementById('recent');
     if (!list.length) {

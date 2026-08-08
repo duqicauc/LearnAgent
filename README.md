@@ -127,8 +127,11 @@ python3 main.py --approve TASK_ID    # 批准并执行
 | `LLM_MODEL` | | `deepseek-v4-flash` | 模型名 |
 | `LLM_BASE_URL` | | `https://api.deepseek.com` | API 端点，可换任意 OpenAI 兼容地址 |
 | `LLM_TIMEOUT` | | `60` | LLM 请求超时（秒，ai-news-assistant 使用） |
+| `ACCESS_PASSWORD` | | （关闭） | ai-news-assistant 访问密码：设置后需登录才能使用（公网部署建议开启） |
+| `SECRET_KEY` | | 开发默认值 | ai-news-assistant session 签名密钥，生产环境请设为随机字符串 |
 
 ## 安全提示
 
 - `.env` 已加入 `.gitignore`，请勿提交或分享你的 API Key
 - `ops_agent` 的删库工具为教学演示，生产使用前请自行评估风险
+- ai-news-assistant 公网部署时请设置 `ACCESS_PASSWORD`，防止他人未授权访问

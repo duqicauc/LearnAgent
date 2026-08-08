@@ -36,8 +36,12 @@ open http://localhost:8080
 | `LLM_BASE_URL` | | `https://api.deepseek.com` | API 端点，可换任意 OpenAI 兼容地址 |
 | `LLM_TIMEOUT` | | `60` | LLM 请求超时（秒） |
 | `PORT` | | `8080` | Web 端口（改端口后同时调整 compose 的 ports） |
+| `ACCESS_PASSWORD` | | （关闭） | 访问密码：设置后所有页面/API 需先登录，30 天免登录；留空则完全开放 |
+| `SECRET_KEY` | | 开发默认值 | session 签名密钥，生产环境务必设置为随机字符串 |
 
 未配置 Key 时服务仍可启动，首页会显示配置引导，但无法运行任务。
+
+公网部署时建议设置 `ACCESS_PASSWORD`（如 `ACCESS_PASSWORD=你的密码`），防止他人直接访问首页与报告；登录页会自动拦截未授权访问。
 
 ## 数据与备份
 

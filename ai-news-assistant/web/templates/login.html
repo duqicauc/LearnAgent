@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · AI 信息搜索助手</title>
+<style>
+:root {
+  --bg: #f5f6fa; --card: #ffffff; --text: #1f2430; --muted: #6b7280;
+  --accent: #4f46e5; --border: #e5e7eb; --err: #dc2626;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 32px 28px; width: 100%; max-width: 360px; box-shadow: 0 4px 20px rgba(0,0,0,.05);
+}
+h1 { font-size: 1.25rem; margin-bottom: 4px; }
+.subtitle { color: var(--muted); font-size: .85rem; margin-bottom: 20px; }
+label { display: block; font-size: .88rem; margin-bottom: 6px; }
+input[type=password] {
+  width: 100%; padding: 10px 12px; font-size: .95rem;
+  border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px;
+  font-family: inherit; color: var(--text); background: var(--bg);
+}
+button {
+  width: 100%; padding: 11px; border: none; border-radius: 10px;
+  background: var(--accent); color: #fff; font-size: .95rem; cursor: pointer;
+  transition: opacity .2s;
+}
+button:hover { opacity: .9; }
+.error {
+  background: #fef2f2; color: var(--err); border: 1px solid #fecaca;
+  border-radius: 8px; padding: 8px 12px; font-size: .85rem; margin-bottom: 12px;
+}
+footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: .78rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>AI 信息搜索助手</h1>
+  <p class="subtitle">请输入访问密码以继续</p>
+  {% if error %}
+  <div class="error">{{ error }}</div>
+  {% endif %}
+  <form method="post" action="{{ request.full_path }}">
+    <label for="password">访问密码</label>
+    <input type="password" id="password" name="password" autofocus required autocomplete="current-password">
+    <button type="submit">进入系统</button>
+  </form>
+  <footer>登录后 30 天内无需重复输入</footer>
+</div>
+</body>
+</html>
