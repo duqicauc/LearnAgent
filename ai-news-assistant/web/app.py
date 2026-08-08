@@ -80,7 +80,10 @@ def login():
     """登录页：POST 校验访问密码，成功后写 session（30 天免登录）。"""
     if request.method == "POST":
         password = request.form.get("password", "")
-        if ACCESS_PASSWORD and hmac.compare_digest(password, ACCESS_PASSWORD):
+        # 编码为 bytes 比较：hmac.compare_digest 不支持非 ASCII 字符串（如中文密码）
+        if ACCESS_PASSWORD and hmac.compare_digest(
+            password.encode("utf-8"), ACCESS_PASSWORD.encode("utf-8")
+        ):
             session.permanent = True
             session["authed"] = True
             nxt = request.args.get("next") or "/"

@@ -147,6 +147,20 @@ def test_auth_flow():
         app_module.ACCESS_PASSWORD = old
 
 
+def test_auth_unicode_password():
+    """非 ASCII 密码（中文）也能正常登录（hmac.compare_digest 需 bytes 比较）。"""
+    old = app_module.ACCESS_PASSWORD
+    app_module.ACCESS_PASSWORD = "中文密码123"
+    try:
+        c = app.test_client()
+        r = c.post("/login", data={"password": "中文密码123"})
+        assert r.status_code == 302  # 正确中文密码 → 成功进入
+        r = c.get("/")
+        assert r.status_code == 200
+    finally:
+        app_module.ACCESS_PASSWORD = old
+
+
 def main() -> None:
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     failed = 0
